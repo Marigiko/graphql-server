@@ -1,44 +1,26 @@
-import { gql } from "apollo-server"
+var express = require('express');
+var { graphqlHTTP } = require('express-graphql');
+var { buildSchema } = require('graphql');
 
-const persons = [
-    {
-        name: "Mario",
-        phone: "3624-354589",
-        id: "65423154560323543241"
-    },
-    {
-        name: "Bruno",
-        phone: "3624-689888",
-        id: "165432135432132432413" 
-    },
-]
+// Construct a schema, using GraphQL schema language
+var schema = buildSchema(`
+  type Query {
+    hello: String
+  }
+`);
 
-const typeDefs = gql `
-    type Person {
-        name: String!
-        phone: String
-        id: ID!
-    }
+// The root provides a resolver function for each API endpoint
+var root = {
+  hello: () => {
+    return 'Hello world!';
+  },
+};
 
-    type Query {
-        personCount: Int!
-        allPersons: [Person]!
-    }
-`
-
-const resolvers = {
-    Query: {
-        personCount: () => persons.length,
-        allPerson: () => persons
-    }
-}
-
-const server = new ApolloServer({
-    typeDefs: typeDefs,
-    resolvers
-})
-
-server.listen().then(({url}) => {
-    console.log(`Server ready at ${url}`)
-})
-
+var app = express();
+app.use('/graphql', graphqlHTTP({
+  schema: schema,
+  rootValue: root,
+  graphiql: true,
+}));
+app.listen(4000);
+console.log('Running a GraphQL API server at http://localhost:4000/graphql');
