@@ -1,7 +1,6 @@
-var express = require('express');
-var { graphqlHTTP } = require('express-graphql');
-var { buildSchema } = require('graphql');
-
+import express from 'express';
+import { graphqlHTTP } from 'express-graphql';
+import { makeExecutableSchema } from 'graphql-tools';
 
 const persons = [
     {
@@ -10,10 +9,28 @@ const persons = [
         city: "Resistencia",
         street: "San Fernando"
     },
+    {
+        name: "Augusto",
+        dni: 45963741,
+        city: "Charata",
+        street: "Sausalito"
+    },
+    {
+        name: "Bruno",
+        dni: 45321789,
+        city: "Chaco",
+        street: "Tailandia"
+    },
+    {
+        name: "Mauro",
+        dni: 45357951,
+        city: "Rio Bermejo",
+        street: "Impenetrable"
+    },
 ]
 
 // Construct a schema, using GraphQL schema language
-var schema = buildSchema(`
+let typeDefs = `
   type Query {
     persons: [Person]
   }
@@ -26,16 +43,32 @@ var schema = buildSchema(`
       city: String
       street: String
   }
-`);
+`;
 
 // The root provides a resolver function for each API endpoint
-var root = {
+let root = {
     persons: () => {
         return persons
     }
 };
 
-var app = express();
+const resolvers = {
+    Person: {
+        address: (root) => {
+            return {
+                street: root.street,
+                city: root.city,
+            }
+        }
+    }
+}
+
+export const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers,
+});
+
+let app = express();
 app.use('/graphql', graphqlHTTP({
     schema: schema,
     rootValue: root,
