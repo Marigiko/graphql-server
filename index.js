@@ -32,6 +32,7 @@ const persons = [
 // Construct a schema, using GraphQL schema language
 let typeDefs = `
   type Query {
+    findPerson(name: String): Person
     persons: [Person]
   }
   type Person {
@@ -43,12 +44,23 @@ let typeDefs = `
       city: String
       street: String
   }
+  type Mutation {
+      changeAddress(
+          name: String
+          street: String
+          city: String
+          ): Address
+  }
 `;
 
 // The root provides a resolver function for each API endpoint
-let root = {
+const root = {
     persons: () => {
         return persons
+    },
+    findPerson: (root) => {
+        const { name } = root
+        return persons.find((person) => person.name === name)
     }
 };
 
@@ -60,12 +72,20 @@ const resolvers = {
                 city: root.city,
             }
         }
+    },
+    Mutation: {
+        changeAddress: (root) => {
+            const finding = () => persons.find(() => persons.name === root.name)
+            const newAddress = { finding , ...root}
+            persons[persons.indexOf(finding)] = newAddress;
+            return newAddress;
+        }
     }
 }
 
 export const schema = makeExecutableSchema({
-  typeDefs,
-  resolvers,
+    typeDefs,
+    resolvers,
 });
 
 let app = express();
